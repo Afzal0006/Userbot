@@ -4,26 +4,23 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 
 BOT_TOKEN = "8358410115:AAF6mtD7Mw1YEn6LNWdEJr6toCubTOz3NLg"
 
+# 🔹 ADD DEAL COMMAND
 async def add_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Delete the /add command message
     try:
         await update.message.delete()
     except:
         pass
 
-    # Check if amount is given
     if len(context.args) < 1:
         await update.message.reply_text("❌ Usage: Reply to DEAL INFO message with /add <amount>")
         return
 
-    # Convert to float
     try:
         amount = float(context.args[0])
     except:
         await update.message.reply_text("❌ Invalid amount!")
         return
 
-    # Check if this is a reply to DEAL INFO message
     if not update.message.reply_to_message:
         await update.message.reply_text("❌ Please reply to the DEAL INFO message with /add <amount>")
         return
@@ -44,13 +41,45 @@ async def add_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"Escrowed by {escrower}\n"
     )
 
-    # Send message as reply to original DEAL INFO message
     await update.effective_chat.send_message(
         msg,
         reply_to_message_id=update.message.reply_to_message.message_id
     )
 
-if __name__ == "__main__":
+# 🔹 COMPLETE DEAL COMMAND
+async def complete_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        await update.message.delete()
+    except:
+        pass
+
+    if len(context.args) < 1:
+        await update.message.reply_text("❌ Usage: /complete <amount>")
+        return
+
+    try:
+        amount = float(context.args[0])
+    except:
+        await update.message.reply_text("❌ Invalid amount!")
+        return
+
+    escrower = f"@{update.effective_user.username}" if update.effective_user.username else "Unknown"
+
+    msg = (
+        f"✅ DEAL COMPLETED\n\n"
+        f"💵 Released Amount: ₹{amount}\n"
+        f"🤝 Escrowed By: {escrower}\n"
+    )
+
+    await update.effective_chat.send_message(msg)
+
+# 🔹 MAIN FUNCTION
+def main():
     app = Application.builder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("add", add_deal))
+    app.add_handler(CommandHandler("complete", complete_deal))
+    print("Bot started... ✅")
     app.run_polling()
+
+if __name__ == "__main__":
+    main()
