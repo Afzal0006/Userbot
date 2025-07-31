@@ -1,60 +1,52 @@
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import Application, CommandHandler, ContextTypes
 import random
 
 BOT_TOKEN = "8358410115:AAF6mtD7Mw1YEn6LNWdEJr6toCubTOz3NLg"
 
-# Last deal storage
-last_deal = {}
-
-# Function to capture DEAL INFO form
-async def deal_info_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = update.message.text.strip()
-
-    if text.startswith("DEAL INFO"):
-        try:
-            lines = [line.strip() for line in text.splitlines() if ":" in line]
-
-            buyer = lines[0].split(":", 1)[1].strip()
-            seller = lines[1].split(":", 1)[1].strip()
-            amount = lines[2].split(":", 1)[1].strip()
-            time_to_complete = lines[3].split(":", 1)[1].strip() if len(lines) > 3 else "Unknown"
-
-            trade_id = f"#TID{random.randint(100000,999999)}"
-
-            last_deal["buyer"] = buyer
-            last_deal["seller"] = seller
-            last_deal["amount"] = amount
-            last_deal["time"] = time_to_complete
-            last_deal["trade_id"] = trade_id
-
-            await update.message.reply_text(f"✅ Deal saved with Trade ID {trade_id}")
-
-        except Exception as e:
-            await update.message.reply_text("❌ Invalid DEAL INFO format!")
-
-# /complete command
-async def complete_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not last_deal:
-        await update.message.reply_text("No deal info found! Send DEAL INFO first.")
+async def add_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Check args
+    if len(context.args) < 1:
+        await update.message.reply_text("Use: /add <amount>")
         return
 
-    buyer = last_deal["buyer"]
-    seller = last_deal["seller"]
-    amount = last_deal["amount"]
-    trade_id = last_deal["trade_id"]
+    # Parse amount
+    try:
+        amount = float(context.args[0])
+    except:
+        await update.message.reply_text("Amount number me likho!")
+        return
 
+    # Fee & Release
+    fee = round(amount * 0.05, 2)  # 5% fee
+    release_amount = round(amount - fee, 2)
+    trade_id = f"#TID{random.randint(100000,999999)}"
+
+    # Escrower info
+    escrower = f"@{update.effective_user.username}" if update.effective_user.username else update.effective_user.first_name
+    buyer_tag = f"[{update.effective_user.first_name}](tg://user?id={update.effective_user.id})"
+
+    # Final message
     message = (
-        f"✅ Deal Completed\n"
-        f"🆔 Trade ID: {trade_id}\n"
-        f"💸 Released: ${amount}\n"
-        f"👤 Buyer: {buyer}\n"
-        f"👤 Seller: {seller}"
+        f"{buyer_tag}\n\n"
+        "💰 P.A.G.A.L INR Transactions\n\n"
+        f"💵 Received Amount: ₹{amount}\n"
+        f"💸 Release/Refund Amount: ₹{release_amount}\n"
+        f"⚖️ Escrow Fee: ₹{fee}\n"
+        f"🆔 Trade ID: {trade_id}\n\n"
+        f"_Escrowed by {escrower}_"
     )
-    await update.message.reply_text(message)
+
+    # Delete the /add message
+    try:
+        await update.message.delete()
+    except:
+        pass
+
+    # Send the deal info
+    await update.message.chat.send_message(message, parse_mode="Markdown")
 
 if __name__ == "__main__":
     app = Application.builder().token(BOT_TOKEN).build()
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, deal_info_handler))
-    app.add_handler(CommandHandler("complete", complete_deal))
+    app.add_handler(CommandHandler("add", add_deal))
     app.run_polling()
