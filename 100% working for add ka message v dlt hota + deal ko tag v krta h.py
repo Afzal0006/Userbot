@@ -65,13 +65,19 @@ async def complete_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     escrower = f"@{update.effective_user.username}" if update.effective_user.username else "Unknown"
 
+    # ✅ Form ko tag kare agar reply kiya gaya hai
+    reply_id = update.message.reply_to_message.message_id if update.message.reply_to_message else None
+
     msg = (
         f"✅ DEAL COMPLETED\n\n"
         f"💵 Released Amount: ₹{amount}\n"
         f"🤝 Escrowed By: {escrower}\n"
     )
 
-    await update.effective_chat.send_message(msg)
+    await update.effective_chat.send_message(
+        msg,
+        reply_to_message_id=reply_id
+    )
 
 # 🔹 MAIN FUNCTION
 def main():
