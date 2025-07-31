@@ -4,8 +4,24 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 
 BOT_TOKEN = "8358410115:AAF6mtD7Mw1YEn6LNWdEJr6toCubTOz3NLg"
 
+# ✅ Check if user is group admin
+async def is_admin(update: Update) -> bool:
+    chat = update.effective_chat
+    user = update.effective_user
+
+    try:
+        member = await chat.get_member(user.id)
+        return member.status in ["administrator", "creator"]
+    except:
+        return False
+
 # 🔹 ADD DEAL COMMAND
 async def add_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await is_admin(update):
+        username = f"@{update.effective_user.username}" if update.effective_user.username else update.effective_user.first_name
+        await update.message.reply_text(f"{username} Baag bhosadiya k")
+        return
+
     try:
         await update.message.delete()
     except:
@@ -25,13 +41,11 @@ async def add_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Please reply to the DEAL INFO message with /add <amount>")
         return
 
-    # Calculate fee & release amount
     fee = round(amount * 0.02, 2)
     release_amount = round(amount - fee, 2)
     trade_id = f"TID{random.randint(100000, 999999)}"
     escrower = f"@{update.effective_user.username}" if update.effective_user.username else "Unknown"
 
-    # Final message
     msg = (
         "💰 INR Transactions\n\n"
         f"💵 Received Amount: ₹{amount}\n"
@@ -48,6 +62,11 @@ async def add_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # 🔹 COMPLETE DEAL COMMAND
 async def complete_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await is_admin(update):
+        username = f"@{update.effective_user.username}" if update.effective_user.username else update.effective_user.first_name
+        await update.message.reply_text(f"{username} Baag bhosadiya k")
+        return
+
     try:
         await update.message.delete()
     except:
@@ -64,8 +83,6 @@ async def complete_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     escrower = f"@{update.effective_user.username}" if update.effective_user.username else "Unknown"
-
-    # ✅ Form ko tag kare agar reply kiya gaya hai
     reply_id = update.message.reply_to_message.message_id if update.message.reply_to_message else None
 
     msg = (
