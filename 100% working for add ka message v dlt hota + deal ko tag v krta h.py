@@ -2,7 +2,7 @@ import random
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-BOT_TOKEN = "8358410115:AAF6mtD7Mw1YEn6LNWdEJr6toCubTOz3NLg"
+BOT_TOKEN = "7607621887:AAGMXwj4mC5g3OsUo4p4xrxQKLKxVwnwZBM"
 
 # Runtime stats storage
 total_deals = 0
