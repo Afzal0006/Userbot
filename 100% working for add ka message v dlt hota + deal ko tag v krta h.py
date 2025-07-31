@@ -4,11 +4,15 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 
 BOT_TOKEN = "8358410115:AAF6mtD7Mw1YEn6LNWdEJr6toCubTOz3NLg"
 
+# Runtime stats storage
+total_deals = 0
+total_volume = 0
+total_fee = 0.0
+
 # ✅ Check if user is group admin
 async def is_admin(update: Update) -> bool:
     chat = update.effective_chat
     user = update.effective_user
-
     try:
         member = await chat.get_member(user.id)
         return member.status in ["administrator", "creator"]
@@ -17,6 +21,8 @@ async def is_admin(update: Update) -> bool:
 
 # 🔹 ADD DEAL COMMAND
 async def add_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global total_deals, total_volume, total_fee
+
     if not await is_admin(update):
         username = f"@{update.effective_user.username}" if update.effective_user.username else update.effective_user.first_name
         await update.message.reply_text(f"{username} Baag bhosadiya k")
@@ -45,6 +51,11 @@ async def add_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
     release_amount = round(amount - fee, 2)
     trade_id = f"TID{random.randint(100000, 999999)}"
     escrower = f"@{update.effective_user.username}" if update.effective_user.username else "Unknown"
+
+    # Update stats
+    total_deals += 1
+    total_volume += amount
+    total_fee += fee
 
     msg = (
         "💰 INR Transactions\n\n"
@@ -96,11 +107,27 @@ async def complete_deal(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_to_message_id=reply_id
     )
 
+# 🔹 STATS COMMAND
+async def stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await is_admin(update):
+        username = f"@{update.effective_user.username}" if update.effective_user.username else update.effective_user.first_name
+        await update.message.reply_text(f"{username} Baag bhosadiya k")
+        return
+
+    msg = (
+        "📊 DEAL STATS\n\n"
+        f"Total Deals: {total_deals}\n"
+        f"Total Volume: ₹{total_volume}\n"
+        f"Total Fee Collected: ₹{round(total_fee,2)}\n"
+    )
+    await update.message.reply_text(msg)
+
 # 🔹 MAIN FUNCTION
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("add", add_deal))
     app.add_handler(CommandHandler("complete", complete_deal))
+    app.add_handler(CommandHandler("stats", stats))
     print("Bot started... ✅")
     app.run_polling()
 
