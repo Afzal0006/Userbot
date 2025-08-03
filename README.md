@@ -17,7 +17,7 @@ Ye bot Telegram par `/deal` command use karte hi **naya private supergroup** cre
 
 Click below to **deploy this bot to Railway**:
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/Afzal0006/<Userbot>)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/Afzal0006/Userbot)
 
 ---
 
