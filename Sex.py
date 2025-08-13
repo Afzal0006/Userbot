@@ -12,17 +12,6 @@ OWNER_ID = 6998916494  # integer
 # === START CLIENT ===
 app = Client("userbot", api_id=API_ID, api_hash=API_HASH, session_string=STRING_SESSION)
 
-async def ensure_peer(client, peer):
-    """Send a dummy message to ensure peer exists in session."""
-    try:
-        if isinstance(peer, int):  # user id
-            await client.send_message(peer, "Hello 👋 (peer setup)")
-        elif isinstance(peer, str):  # username
-            await client.send_message(peer, "/start")  # For bot
-        await asyncio.sleep(1)
-    except Exception as e:
-        print(f"[Peer Setup Error] {peer} -> {e}")
-
 @app.on_message(filters.private & filters.text)
 async def create_group(client, message):
     trigger_words = ["deal", "/setup", "/create"]
@@ -31,10 +20,6 @@ async def create_group(client, message):
         try:
             buyer_username = f"@{message.from_user.username}" if message.from_user.username else message.from_user.first_name
             chat_title = f"Escrow Deal - {message.from_user.first_name}"
-
-            # Step 0: Ensure peers exist
-            await ensure_peer(client, OWNER_ID)
-            await ensure_peer(client, ESCROW_BOT_USERNAME)
 
             # Step 1: Create group with buyer + owner
             group = await client.create_group(chat_title, [OWNER_ID, message.from_user.id])
@@ -68,5 +53,5 @@ async def create_group(client, message):
     else:
         await message.reply_text("Type 'deal' or '/setup' to create a new escrow group.")
 
-print("🚀 Userbot running...")
+print("🚀 Userbot running without spam...")
 app.run()
